@@ -10,10 +10,9 @@ module GithubTrello
 
       payload = JSON.parse(params[:payload])
 
-      board_id = config["board_ids"][payload["repository"]["name"]]
+      board_id = config["board_ids"] #[payload["repository"]["name"]]
       unless board_id
         puts "[ERROR] Commit from #{payload["repository"]["name"]} but no board_id entry found in config"
-        return
       end
 
       branch = payload["ref"].gsub("refs/heads/", "")
@@ -25,7 +24,7 @@ module GithubTrello
 
       payload["commits"].each do |commit|
         # Figure out the card short id
-        match = commit["message"].match(/((case|card|close|archive|fix)e?s? \D?([0-9]+))/i)
+        match = commit["message"].match(/((case|card|close|archive|fix|check)e?s? \D?([0-9]+))/i)
         next unless match and match[3].to_i > 0
 
         results = http.get_card(board_id, match[3].to_i)
@@ -43,11 +42,19 @@ module GithubTrello
 
         http.add_comment(results["id"], message)
 
+        # if match[2].downcase == "check"
+        #   then results = http.check_lists(board_id)
+        #   puts results
+        # else
+        #   puts "hello" 
+        # end 
+
         # Determine the action to take
         update_config = case match[2].downcase
-          when "case", "card" then config["on_start"]
+          #when "case", "card" then config["on_start"]
           when "close", "fix" then config["on_close"]
           when "archive" then {:archive => true}
+          #when "check" then puts results["checkItemStates"]
         end
 
         next unless update_config.is_a?(Hash)

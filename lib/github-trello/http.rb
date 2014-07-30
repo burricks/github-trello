@@ -9,7 +9,7 @@ module GithubTrello
     end
 
     def get_card(board_id, card_id)
-      http_request(:get, "/1/boards/#{board_id}/cards/#{card_id}", :params => {:fields => "idList,closed"})
+      http_request(:get, "/1/boards/#{board_id}/cards/#{card_id}", :params => {:fields => "idList,closed", :checkItemState_fields => "all"})
     end
 
     def update_card(card_id, params)
@@ -22,6 +22,10 @@ module GithubTrello
 
     def get_cards(list_id)
       http_request(:get, "/1/lists/#{list_id}/cards", :params => {:fields => "idList"})
+    end
+
+    def check_lists(board_id)
+      http_request(:get, "/1/boards/#{board_id}", :params => {:checklists => "all"})
     end
 
     private
